@@ -11,9 +11,44 @@ Agent / IDE / SDK  ──►  http://127.0.0.1:8317/v1  ──►  多 Provider 
 ```
 
 - 客户端只需 `model = "glm-5.3"` 或别名 `"coding"`,无需关心上游是谁、什么协议、哪个 Key。
-- 同时对外暴露 **OpenAI Chat Completions**、**OpenAI Responses**、**Anthropic Messages** 三种协议;任何上游协议之间自动转换(通过统一 Canonical Protocol,而非 N×N converter)。
+- 同时对外暴露 **OpenAI Chat Completions**、**OpenAI Responses**、**Anthropic Messages** 三种协议；通过统一 Canonical Protocol 提供自动兼容转换。转换并非所有协议专属能力的无损映射，具体范围见下方说明。
 - 后台动态添加 Provider / Model / API Key / Alias,**不重启即生效**(Registry Snapshot 原子热替换)。
 - Token 用量按 **Model / Provider / API Key / Key×Model** 记账,区分 `0`(供应商明确为 0)与 `—`(未提供),区分 **Exact / Estimated**,区分 **Logical Request Usage**(客户端最终收到)与 **Upstream Attempt Usage**(供应商实际计费)。
+
+## 协议转换范围 / Protocol conversion scope
+
+网关的适配器和路由架构支持三种客户端协议与三种上游原生协议之间的 `3 × 3`
+转换。这里的“支持”表示存在 Canonical 转换代码路径，**不表示所有组合均已通过同等级
+端到端测试，也不表示协议专属功能能够无损转换**。
+
+The adapter and routing architecture implements a `3 × 3` conversion path between the
+three client protocols and three native upstream protocols. “Implemented” does **not** mean
+that every combination has equivalent end-to-end coverage or lossless feature fidelity.
+
+| 上游原生协议 / Native upstream | Chat 客户端 | Responses 客户端 | Anthropic 客户端 |
+|---|---|---|---|
+| OpenAI Chat Completions | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified |
+| OpenAI Responses | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented |
+| Anthropic Messages | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented |
+
+当前同等级端到端证据使用的是内置 Chat-only 假上游；尚未对 Responses 原生上游、
+Anthropic 原生上游的全部交叉组合和真实第三方供应商完成同等级验证。
+
+Current equivalent E2E evidence uses the bundled chat-only fake upstream. The complete
+cross-product for native Responses and native Anthropic upstreams, and real third-party
+provider behavior, has not yet been verified to the same standard.
+
+主要降级项 / Important fidelity limits:
+
+- 可靠的跨协议工具抽象是 function calling；Web Search、Computer Use、File Search、MCP 等托管工具不会跨协议保留。
+- Responses 的 `previous_response_id`/服务端状态不能由 Chat 或 Anthropic 上游模拟。
+- Anthropic document、推理签名、图片工具结果以及部分 Responses 专属字段可能被降级或丢弃。
+- 模型的某个协议模式可由管理员设为 `unsupported`，此时对应接口会明确拒绝，而非转换。
+- Function calling is the portable tool abstraction; hosted tools such as Web Search, Computer Use, File Search, and MCP are not preserved across protocols.
+- Responses server-side state such as `previous_response_id` cannot be emulated by Chat or Anthropic upstreams.
+
+完整限制请阅读 [协议兼容矩阵](docs/PROTOCOLS.md#compatibility-matrix) 和
+[Responses 兼容说明](docs/RESPONSES_COMPATIBILITY.md#what-cannot-be-emulated)。
 
 ## 快速开始
 

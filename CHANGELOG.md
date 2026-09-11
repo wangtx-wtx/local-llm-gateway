@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Documentation
+
+- Clarified that the protocol layer implements a 3 × 3 compatibility matrix but only the
+  chat-native upstream row currently has equivalent end-to-end verification.
+- Documented that cross-protocol conversion is not lossless for provider-specific features.
+
 ## [1.0.2] - 2026-09-11
 
 ### Changed

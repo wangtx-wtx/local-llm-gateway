@@ -350,6 +350,24 @@ adapter, and the upstream's canonical stream events are re-serialized by the
 **client** protocol's stream serializer. No pairwise converter exists; both
 directions go through the canonical model.
 
+### Verification status
+
+The matrix above describes implemented routing and adapter paths, not equivalent
+verification or lossless fidelity for all nine combinations.
+
+| Native upstream | Chat client | Responses client | Anthropic client |
+| --- | --- | --- | --- |
+| OpenAI Chat Completions | E2E verified | E2E verified | E2E verified |
+| OpenAI Responses | Implemented | Implemented | Implemented |
+| Anthropic Messages | Implemented | Implemented | Implemented |
+
+The E2E-verified row uses the bundled chat-only fake upstream and covers both streaming
+and non-streaming behavior where asserted by the integration and acceptance suites. The
+native Responses and native Anthropic rows have protocol adapter and transport
+implementations, but their complete cross-protocol combinations have not been exercised
+with equivalent full-gateway tests or real third-party providers. They must therefore not
+be advertised as fully verified or lossless.
+
 The mode is per-model (`chatCompletionsMode`, `responsesMode`,
 `anthropicMessagesMode` on the model entity) and validated per request in
 `assertProtocolSupported`; `unsupported` rejects with a
