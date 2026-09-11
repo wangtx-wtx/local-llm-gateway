@@ -17,6 +17,21 @@ Agent / IDE / SDK  ──►  http://127.0.0.1:8317/v1  ──►  多 Provider 
 
 ## 快速开始
 
+### Windows 便携版（推荐普通用户）
+
+无需安装 Node.js，也不需要管理员权限：
+
+1. 在 [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases) 下载文件名包含 `windows-x64-portable.zip` 的压缩包。
+2. 完整解压到一个可写目录，不要直接在 ZIP 内运行。
+3. 双击 `启动网关.cmd`（或 `Start Gateway.cmd`）。
+4. 浏览器会自动打开 Dashboard；依次添加 Provider、API Key 和 Model。
+
+停止时双击 `停止网关.cmd`。首次启动产生的 `.env`、`data/gateway.db` 和
+`data/master.key` 只保存在解压目录中。升级前请停止网关，并将数据库与
+`master.key` **一起备份**。详细说明见 [Windows 便携版指南](docs/WINDOWS_PORTABLE.md)。
+
+### 源码运行
+
 ```bash
 # 需要 Node >= 22.13.0(内置 node:sqlite 自 22.13 起无需 --experimental-sqlite)
 # 生产部署建议使用 Node 24 LTS
@@ -162,6 +177,7 @@ npm --prefix web run dev        # 热更新开发服务器
 - [docs/DATABASE.md](docs/DATABASE.md) — SQLite Schema 与双账本记账模型
 - [docs/SECURITY.md](docs/SECURITY.md) — 威胁模型与安全边界
 - [docs/TESTING.md](docs/TESTING.md) — 测试策略、国际化约定与扩展方式
+- [docs/WINDOWS_PORTABLE.md](docs/WINDOWS_PORTABLE.md) — Windows 便携版下载、启动、升级与安全说明
 
 ## Docker
 

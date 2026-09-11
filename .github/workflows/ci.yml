@@ -91,3 +91,36 @@ jobs:
           docker logs gateway-ci || true
           docker rm -f gateway-ci || true
           exit 1
+
+  portable:
+    name: Build Windows portable ZIP
+    runs-on: windows-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm --prefix web ci
+          npm run build:all
+
+      - name: Build portable package
+        run: npm run build:portable
+
+      - name: Upload portable package
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-x64-portable
+          path: |
+            artifacts/*.zip
+            artifacts/*.sha256

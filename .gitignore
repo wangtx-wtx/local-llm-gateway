@@ -15,6 +15,7 @@ master.key
 *.log
 *.tsbuildinfo
 backup-*
+artifacts/
 coverage/
 .vitest/
 

@@ -1,6 +1,6 @@
 {
   "name": "local-llm-gateway",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local LLM Gateway: multi-provider protocol translation layer, API key pool, usage accounting and observability dashboard.",
   "license": "MIT",
   "repository": {
@@ -32,6 +32,7 @@
     "test:acceptance": "vitest run tests/acceptance",
     "build:web": "npm --prefix web run build",
     "build:all": "npm run build && npm run build:web",
+    "build:portable": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-portable.ps1",
     "smoke": "node scripts/smoke.mjs",
     "demo:providers": "node scripts/demo-multi-provider.mjs",
     "check:master-key": "node scripts/check-master-key.mjs",

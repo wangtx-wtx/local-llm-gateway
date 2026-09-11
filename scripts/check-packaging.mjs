@@ -112,6 +112,27 @@ process.stdout.write('\n.github/workflows/ci.yml\n');
   check(/npm run build/.test(text), 'runs the build');
   check(/docker\/build-push-action/.test(text), 'builds the container image');
   check(/LOCAL_GATEWAY_API_KEY=/.test(text), 'smoke-tests the image with the required secrets');
+  check(/runs-on: windows-latest/.test(text), 'builds the portable package on Windows');
+  check(/npm run build:portable/.test(text), 'runs the portable package builder');
+}
+
+process.stdout.write('\nWindows portable edition\n');
+{
+  const builder = read('scripts/build-portable.ps1');
+  const requiredFiles = [
+    'portable/Start Gateway.cmd',
+    'portable/Stop Gateway.cmd',
+    'portable/Open Dashboard.cmd',
+    'portable/Start-Gateway.ps1',
+    'portable/Stop-Gateway.ps1',
+    'portable/Open-Dashboard.ps1',
+    'portable/README-PORTABLE.txt',
+    'docs/WINDOWS_PORTABLE.md',
+  ];
+  for (const path of requiredFiles) check(existsSync(path), `portable file exists: ${path}`);
+  check(/SHASUMS256\.txt/.test(builder), 'verifies the official Node.js checksum list');
+  check(/Sensitive runtime file entered the package/.test(builder), 'rejects sensitive runtime files');
+  check(/\.zip\.sha256|\$zipPath\.sha256/.test(builder), 'writes a package SHA-256 file');
 }
 
 process.stdout.write(`\n${failures === 0 ? 'All checks passed.' : `${failures} check(s) failed.`}\n`);
