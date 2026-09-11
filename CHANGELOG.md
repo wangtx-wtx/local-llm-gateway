@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.2] - 2026-09-11
+
+### Changed
+
+- Made the portable ZIP instructions, repository quick-start text, detailed guide, and
+  release notes bilingual in Chinese and English.
+
 ## [1.0.1] - 2026-09-11
 
 ### Added
@@ -26,3 +33,4 @@ All notable changes to this project are documented in this file.
 
 [1.0.0]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.0
 [1.0.1]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.1
+[1.0.2]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.2

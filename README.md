@@ -30,6 +30,12 @@ Agent / IDE / SDK  ──►  http://127.0.0.1:8317/v1  ──►  多 Provider 
 `data/master.key` 只保存在解压目录中。升级前请停止网关，并将数据库与
 `master.key` **一起备份**。详细说明见 [Windows 便携版指南](docs/WINDOWS_PORTABLE.md)。
 
+**English:** Download the `windows-x64-portable.zip` asset from
+[Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases), fully extract it,
+and double-click `Start Gateway.cmd`. No administrator permission or separate Node.js
+installation is required. Back up `data/gateway.db` and `data/master.key` together.
+See the [bilingual Windows portable guide](docs/WINDOWS_PORTABLE.md) for details.
+
 ### 源码运行
 
 ```bash

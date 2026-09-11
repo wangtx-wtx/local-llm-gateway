@@ -71,3 +71,85 @@ npm run build:portable
 脚本会从 Node.js 官方站点下载固定版本的 Windows x64 运行时，验证官方 SHA-256，
 然后生成 `artifacts/` 下的 ZIP 与校验文件。打包前还会检查敏感运行时文件，发现
 `.env`、数据库、`master.key`、私钥或证书文件时立即失败。
+
+---
+
+# Windows Portable Edition (English)
+
+The portable edition is intended for Windows users who want to run the gateway directly.
+It includes an official Node.js runtime verified against the publisher's SHA-256 list. It
+does not require `npm install`, administrator permission, or a system service.
+
+## Download and start
+
+1. Open the project's [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases).
+2. Download `local-llm-gateway-v*-windows-x64-portable.zip`.
+3. Fully extract the ZIP to a normal writable folder, such as `D:\Apps\LocalLLMGateway`.
+4. Double-click `Start Gateway.cmd`.
+5. Wait for the browser to open `http://127.0.0.1:8317/admin` automatically.
+6. Add a Provider, API Key, and Model in the dashboard.
+
+The default bind address is `127.0.0.1`, so other devices on the local network cannot
+connect directly. Do not change it to `0.0.0.0` merely for convenience. Network access
+requires a gateway API key, an administrator password, and appropriate firewall rules.
+
+## Common operations
+
+- Start: double-click `Start Gateway.cmd`.
+- Open the dashboard: double-click `Open Dashboard.cmd`.
+- Stop: double-click `Stop Gateway.cmd`.
+- View startup errors: open `logs\gateway.stderr.log`.
+
+The stop script verifies both the executable path and command line. It refuses to stop a
+PID that does not belong to this portable directory, preventing accidental termination of
+another Node.js process, Claude Code session, or gateway.
+
+## Data and backups
+
+The first launch creates:
+
+| File | Purpose |
+|---|---|
+| `.env` | Local configuration that may contain credentials |
+| `data/gateway.db` | Providers, models, encrypted API keys, and usage records |
+| `data/master.key` | Master key used to decrypt provider API keys in the database |
+| `logs/` | Local runtime logs |
+
+Always back up `gateway.db` and `master.key` together. Encrypted API keys cannot be
+recovered if `master.key` is lost. Never upload `.env`, `data/`, or logs to GitHub, and do
+not send them to other people.
+
+## Updating
+
+1. Double-click `Stop Gateway.cmd` in the old directory.
+2. Back up `.env` and the entire `data` folder.
+3. Extract the new ZIP to a new directory.
+4. Copy `.env` and `data` from the old directory into the new directory.
+5. Double-click `Start Gateway.cmd` in the new directory.
+
+Do not overwrite a directory while the gateway is running. Keep the old directory until
+the new version has been verified.
+
+## Verifying the download
+
+Each ZIP has a matching `.sha256` file. Run this command in PowerShell:
+
+```powershell
+Get-FileHash .\local-llm-gateway-v*-windows-x64-portable.zip -Algorithm SHA256
+```
+
+Compare the output with the value in the `.sha256` file. Download portable packages only
+from this project's GitHub Releases page.
+
+## Building the package
+
+```powershell
+npm ci
+npm --prefix web ci
+npm run build:all
+npm run build:portable
+```
+
+The builder downloads a pinned Windows x64 Node.js runtime from the official website,
+verifies its official SHA-256, and writes the ZIP and checksum to `artifacts/`. Packaging
+fails if `.env`, a database, `master.key`, a private key, or a certificate enters the bundle.
