@@ -1,0 +1,40 @@
+# Build context hygiene: keep the image build fast and free of local state.
+# Keeping these out also prevents a developer's real database, master key or API
+# keys from ever being copied into a published image.
+
+# Dependencies and build output are produced inside the image.
+node_modules
+web/node_modules
+dist
+web/dist
+
+# Local runtime state — NEVER ship this. `data/` contains the SQLite database and
+# the generated `master.key`; leaking the latter exposes every stored provider key.
+data
+*.db
+*.db-wal
+*.db-shm
+master.key
+backup-*
+
+# Environment files may hold real credentials.
+.env
+.env.*
+!.env.example
+
+# VCS, editor and OS noise.
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# Tests, docs, logs and scratch output are not needed to build or run.
+tests
+coverage
+*.log
+npm-debug.log*
+.vitest

@@ -1,0 +1,94 @@
+# Local LLM Gateway — container composition
+#
+# Quick start:
+#   1. Copy .env.example to .env and fill in the two REQUIRED secrets below.
+#   2. docker compose up -d --build
+#   3. Open http://127.0.0.1:8317/admin
+#
+# SECURITY: the gateway binds 0.0.0.0 inside the container. It refuses to start on
+# a non-loopback address unless BOTH the gateway API key and the admin password are
+# set, so the `${VAR:?message}` syntax below makes compose fail loudly rather than
+# boot an unauthenticated control plane.
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local-llm-gateway:latest
+    container_name: local-llm-gateway
+    restart: unless-stopped
+
+    # Ports are published to the host loopback only. Remove the "127.0.0.1:" prefix
+    # only if you have also set both secrets below and accept remote exposure.
+    ports:
+      - "127.0.0.1:8317:8317"
+
+    env_file:
+      - .env
+
+    environment:
+      # ------------------------------------------------------------ required
+      # Gateway authentication for /v1 clients.
+      LOCAL_GATEWAY_API_KEY: "${LOCAL_GATEWAY_API_KEY:?Set LOCAL_GATEWAY_API_KEY in .env — required because the container binds 0.0.0.0}"
+      # Dashboard/administration password.
+      LOCAL_GATEWAY_ADMIN_PASSWORD: "${LOCAL_GATEWAY_ADMIN_PASSWORD:?Set LOCAL_GATEWAY_ADMIN_PASSWORD in .env — required because the container binds 0.0.0.0}"
+
+      # ------------------------------------------------------------- runtime
+      LOCAL_GATEWAY_HOST: "0.0.0.0"
+      LOCAL_GATEWAY_PORT: "8317"
+      LOCAL_GATEWAY_DB_PATH: "/app/data/gateway.db"
+      LOCAL_GATEWAY_LOG_LEVEL: "${LOCAL_GATEWAY_LOG_LEVEL:-INFO}"
+      LOCAL_GATEWAY_PERSIST_LOGS: "${LOCAL_GATEWAY_PERSIST_LOGS:-true}"
+
+      # Optional: pin the master key instead of letting the gateway generate one
+      # into /app/data/master.key. BASE64_MASTER_KEY is produced by:
+      #   node dist/config/generate-key.js
+      # Set it when you want the same key across several replicas or hosts.
+      # LOCAL_GATEWAY_MASTER_KEY: "${LOCAL_GATEWAY_MASTER_KEY:-}"
+
+    volumes:
+      # Persists the SQLite database (plus its -wal/-shm files in WAL mode) AND the
+      # auto-generated master.key.
+      #
+      # WARNING: losing master.key makes every stored provider API key
+      # undecryptable — the encrypted envelopes in the database cannot be opened
+      # without it. Back this volume up together with the database.
+      - gateway-data:/app/data
+
+    # Lets the container reach a provider running on the HOST machine (Ollama, vLLM,
+    # llama.cpp, LM Studio, ...). Inside the container 127.0.0.1 is the container
+    # itself, so host services must be addressed as host.docker.internal.
+    #
+    # Also note: the gateway blocks loopback/private/link-local targets by default
+    # (SSRF protection). A provider pointing at the host must have
+    # `allowPrivateNetwork: true` set on its provider record — configurable in the
+    # dashboard under Providers, or via the admin API. Cloud metadata endpoints
+    # (169.254.169.254 and friends) remain blocked regardless of that flag.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8317/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+    # The gateway is chatty by design (one structured record per request), so cap
+    # the log files rather than letting them grow without bound.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    stop_grace_period: 15s
+
+volumes:
+  gateway-data:
+    driver: local

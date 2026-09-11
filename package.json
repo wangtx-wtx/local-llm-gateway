@@ -1,0 +1,50 @@
+{
+  "name": "local-llm-gateway",
+  "version": "1.0.0",
+  "description": "Local LLM Gateway: multi-provider protocol translation layer, API key pool, usage accounting and observability dashboard.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangtx-wtx/local-llm-gateway.git"
+  },
+  "homepage": "https://github.com/wangtx-wtx/local-llm-gateway#readme",
+  "bugs": {
+    "url": "https://github.com/wangtx-wtx/local-llm-gateway/issues"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint --deny-warnings src tests scripts",
+    "check:packaging": "node scripts/check-packaging.mjs",
+    "check:i18n": "node scripts/check-i18n-usage.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run check:packaging && npm run check:i18n",
+    "start": "node dist/index.js",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:acceptance": "vitest run tests/acceptance",
+    "build:web": "npm --prefix web run build",
+    "build:all": "npm run build && npm run build:web",
+    "smoke": "node scripts/smoke.mjs",
+    "demo:providers": "node scripts/demo-multi-provider.mjs",
+    "check:master-key": "node scripts/check-master-key.mjs",
+    "check:concurrency": "node scripts/check-concurrency.mjs",
+    "check:api-errors": "node scripts/check-api-errors.mjs",
+    "check:reasoning": "node scripts/check-reasoning-live.mjs",
+    "check:responses-fidelity": "node scripts/check-responses-fidelity.mjs",
+    "check:mapping": "node scripts/check-chat-responses-mapping.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "oxlint": "^1.82.0",
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.0"
+  }
+}

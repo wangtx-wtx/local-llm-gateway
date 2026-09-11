@@ -1,0 +1,23 @@
+node_modules/
+dist/
+web/node_modules/
+web/dist/
+data/
+*.db
+*.db-wal
+*.db-shm
+.env*
+!.env.example
+master.key
+*.pem
+*.pfx
+*.p12
+*.log
+*.tsbuildinfo
+backup-*
+coverage/
+.vitest/
+
+# Scratch files that may hold a gateway key
+.gateway-key.txt
+*.key.txt

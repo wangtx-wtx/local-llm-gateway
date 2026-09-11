@@ -1,0 +1,93 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24 is the recommended runtime. The gateway uses the built-in
+      # `node:sqlite` module unflagged, so Node >= 22.13 is required.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install dashboard dependencies
+        run: npm --prefix web ci
+
+      - name: Verify
+        run: npm run verify
+
+      # Proves the dashboard compiles as part of the main pipeline rather than
+      # only in the container build.
+      - name: Build gateway and dashboard
+        run: npm run build:all
+
+  container:
+    name: Build container image
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Build only — no push. This exists to catch Dockerfile regressions early.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: local-llm-gateway:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Smoke-test the image: it must boot, apply migrations and answer /health.
+      # The container binds 0.0.0.0, so both secrets are mandatory.
+      - name: Verify the container starts and reports healthy
+        run: |
+          set -euo pipefail
+          docker run -d --name gateway-ci \
+            -e LOCAL_GATEWAY_API_KEY=ci-gateway-key \
+            -e LOCAL_GATEWAY_ADMIN_PASSWORD=ci-admin-password \
+            -e LOCAL_GATEWAY_LOG_LEVEL=WARN \
+            -p 18317:8317 \
+            local-llm-gateway:ci
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18317/health > /dev/null; then
+              echo "Gateway is healthy after ${attempt} attempt(s)."
+              curl -fsS http://127.0.0.1:18317/ready
+              docker logs gateway-ci
+              docker rm -f gateway-ci
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Gateway failed to become healthy; container logs follow:"
+          docker logs gateway-ci || true
+          docker rm -f gateway-ci || true
+          exit 1
