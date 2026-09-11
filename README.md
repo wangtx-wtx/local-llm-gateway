@@ -15,6 +15,24 @@ Agent / IDE / SDK  ──►  http://127.0.0.1:8317/v1  ──►  多 Provider 
 - 后台动态添加 Provider / Model / API Key / Alias,**不重启即生效**(Registry Snapshot 原子热替换)。
 - Token 用量按 **Model / Provider / API Key / Key×Model** 记账,区分 `0`(供应商明确为 0)与 `—`(未提供),区分 **Exact / Estimated**,区分 **Logical Request Usage**(客户端最终收到)与 **Upstream Attempt Usage**(供应商实际计费)。
 
+## 核心亮点 / Highlights
+
+- **统一入口，而非客户端绑死上游**：Agent、IDE 和 SDK 只需使用一个本地地址、模型名或别名；网关负责选择实际的 Provider、模型和 API Key。
+- **三协议兼容与自动转换**：同时提供 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages；基础文本、流式输出、用量和请求路由均通过 Canonical Protocol 转换。完整 `3 × 3` 组合的测试范围见下方，协议专属能力仍可能降级。
+- **面向生产的 Key 池与路由**：支持多 Key 自动轮换、401/403/429 的 Key 切换、冷却、健康状态、熔断、重试、并发控制和回退链路。
+- **不停机控制平面**：在 Dashboard 中更新 Provider、Model、Key、别名、回退和运行参数后立即生效；Registry Snapshot 原子替换，Key 健康状态持续保留。
+- **双账本成本可见性**：Logical Request Usage 记录客户端最终收到的用量；Upstream Attempt Usage 记录供应商每次实际尝试的消耗，重试或失败不会被混为一笔账。
+- **可观测、可审计**：Dashboard 提供模型、供应商、Key、Key × Model 维度的 token 视图；并提供 Prometheus metrics、请求追踪、结构化日志与 `/health`、`/ready` 健康检查。
+- **本地优先的安全设计**：默认只监听 `127.0.0.1`；上游请求具有 SSRF 防护；Provider 密钥以 AES-256-GCM 加密保存；调用端和管理端分别鉴权。
+- **低依赖、可携带**：运行时只依赖 Node.js 内置能力（含 `node:sqlite`）；Windows 便携版内置校验过的 Node.js 运行时，配置和密钥仅保存在本机目录。
+
+**English:** A local, observable, and auditable control plane for multi-provider LLM APIs:
+one endpoint and model alias for clients; three protocol endpoints with canonical conversion;
+key rotation, retries, circuit breaking, concurrency limits, and fallback; live dashboard
+configuration; separate client-request and upstream-attempt usage ledgers; Prometheus,
+traces, and health checks; local-first defaults, encrypted provider secrets, and a portable
+Windows edition with no runtime dependencies beyond Node.js built-ins.
+
 ## 协议转换范围 / Protocol conversion scope
 
 网关的适配器和路由架构支持三种客户端协议与三种上游原生协议之间的 `3 × 3`
