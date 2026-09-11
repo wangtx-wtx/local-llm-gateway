@@ -55,7 +55,7 @@ jobs:
 
       # Build only — no push. This exists to catch Dockerfile regressions early.
       - name: Build image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
