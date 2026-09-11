@@ -5,10 +5,18 @@ Local LLM Gateway - Windows 便携版 / Windows Portable Edition
 --------
 
 快速开始
-1. 将 ZIP 完整解压到普通可写目录，不要直接在压缩包内运行。
-2. 双击“启动网关.cmd”。
-3. 浏览器会自动打开 http://127.0.0.1:8317/admin。
-4. 在 Dashboard 中依次添加 Provider、API Key 和 Model。
+1. 在解压前，右键下载的 ZIP →“属性”→勾选底部“解除锁定/Unblock”→“应用”。
+2. 将 ZIP 完整解压到普通可写目录，不要直接在压缩包内运行。
+3. 双击“启动网关.cmd”。
+4. 浏览器会自动打开 http://127.0.0.1:8317/admin。
+5. 在 Dashboard 中依次添加 Provider、API Key 和 Model。
+
+Windows 11 的“智能应用控制”可能会阻止带有“来自 Internet”标记的 `.cmd` 或 `.ps1`
+脚本。这不是网关启动失败，也不能由 `ExecutionPolicy Bypass` 解决。请务必在解压前解除
+ZIP 的锁定；如果已经解压，请删除该目录、解除 ZIP 锁定后重新解压。也可在自己打开的
+PowerShell 中执行以下命令，对已解压目录递归解除标记（请先把路径替换为实际目录）：
+
+    Get-ChildItem -LiteralPath 'D:\Apps\LocalLLMGateway' -Recurse -File | Unblock-File
 
 无需安装软件、无需管理员权限，也无需另外安装 Node.js。默认情况下，网关仅允许
 本机访问。
@@ -39,10 +47,20 @@ English Instructions
 --------------------
 
 Quick start
-1. Fully extract the ZIP to a normal writable folder. Do not run it inside the ZIP.
-2. Double-click "Start Gateway.cmd".
-3. Your browser opens http://127.0.0.1:8317/admin automatically.
-4. Add a Provider, API Key, and Model in the dashboard.
+1. Before extracting, right-click the downloaded ZIP → Properties → check **Unblock** at
+   the bottom → Apply.
+2. Fully extract the ZIP to a normal writable folder. Do not run it inside the ZIP.
+3. Double-click "Start Gateway.cmd".
+4. Your browser opens http://127.0.0.1:8317/admin automatically.
+5. Add a Provider, API Key, and Model in the dashboard.
+
+Windows 11 Smart App Control can block `.cmd` or `.ps1` scripts carrying the "from the
+Internet" mark. This is not a gateway startup failure, and `ExecutionPolicy Bypass` cannot
+override it. Unblock the ZIP before extracting. If it was already extracted, delete that
+folder, unblock the ZIP, and extract it again. Alternatively, run this in a PowerShell window
+you opened yourself, replacing the path with the extracted folder:
+
+    Get-ChildItem -LiteralPath 'D:\Apps\LocalLLMGateway' -Recurse -File | Unblock-File
 
 No installation, administrator permission, or separate Node.js installation is required.
 The gateway is accessible only from this computer by default.

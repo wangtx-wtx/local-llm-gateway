@@ -1,6 +1,6 @@
 {
   "name": "local-llm-gateway",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Local LLM Gateway: multi-provider protocol translation layer, API key pool, usage accounting and observability dashboard.",
   "license": "MIT",
   "repository": {

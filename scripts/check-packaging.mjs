@@ -133,6 +133,8 @@ process.stdout.write('\nWindows portable edition\n');
   check(/SHASUMS256\.txt/.test(builder), 'verifies the official Node.js checksum list');
   check(/Sensitive runtime file entered the package/.test(builder), 'rejects sensitive runtime files');
   check(/\.zip\.sha256|\$zipPath\.sha256/.test(builder), 'writes a package SHA-256 file');
+  check(/Unblock-File/.test(read('portable/README-PORTABLE.txt')), 'documents how to clear Windows Internet marks');
+  check(/Unblock-File/.test(read('docs/WINDOWS_PORTABLE.md')), 'documents Smart App Control recovery');
 }
 
 process.stdout.write(`\n${failures === 0 ? 'All checks passed.' : `${failures} check(s) failed.`}\n`);

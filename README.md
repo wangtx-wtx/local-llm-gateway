@@ -64,9 +64,10 @@ real-provider evidence yet. No URL, model ID, or secret was recorded or committe
 无需安装 Node.js，也不需要管理员权限：
 
 1. 在 [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases) 下载文件名包含 `windows-x64-portable.zip` 的压缩包。
-2. 完整解压到一个可写目录，不要直接在 ZIP 内运行。
-3. 双击 `启动网关.cmd`（或 `Start Gateway.cmd`）。
-4. 浏览器会自动打开 Dashboard；依次添加 Provider、API Key 和 Model。
+2. **解压前**右键 ZIP →“属性”→勾选“解除锁定/Unblock”→“应用”（避免 Windows 11 智能应用控制拦截启动脚本）。
+3. 完整解压到一个可写目录，不要直接在 ZIP 内运行。
+4. 双击 `启动网关.cmd`（或 `Start Gateway.cmd`）。
+5. 浏览器会自动打开 Dashboard；依次添加 Provider、API Key 和 Model。
 
 停止时双击 `停止网关.cmd`。首次启动产生的 `.env`、`data/gateway.db` 和
 `data/master.key` 只保存在解压目录中。升级前请停止网关，并将数据库与
@@ -75,7 +76,9 @@ real-provider evidence yet. No URL, model ID, or secret was recorded or committe
 **English:** Download the `windows-x64-portable.zip` asset from
 [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases), fully extract it,
 and double-click `Start Gateway.cmd`. No administrator permission or separate Node.js
-installation is required. Back up `data/gateway.db` and `data/master.key` together.
+installation is required. Before extraction, use the ZIP's Properties dialog to select
+**Unblock**, so Windows 11 Smart App Control does not block the launch scripts. Back up
+`data/gateway.db` and `data/master.key` together.
 See the [bilingual Windows portable guide](docs/WINDOWS_PORTABLE.md) for details.
 
 ### 源码运行

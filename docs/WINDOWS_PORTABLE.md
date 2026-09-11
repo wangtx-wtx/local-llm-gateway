@@ -7,13 +7,27 @@ Node.js 运行时，不需要运行 `npm install`，不需要管理员权限，�
 
 1. 打开项目的 [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases)。
 2. 下载 `local-llm-gateway-v*-windows-x64-portable.zip`。
-3. 将 ZIP **完整解压**到普通可写目录，例如 `D:\Apps\LocalLLMGateway`。
-4. 双击 `启动网关.cmd` 或 `Start Gateway.cmd`。
-5. 等待浏览器自动打开 `http://127.0.0.1:8317/admin`。
-6. 在 Dashboard 中依次添加 Provider、API Key 和 Model。
+3. 在解压前右键 ZIP →“属性”→勾选底部的“解除锁定/Unblock”→“应用”。
+4. 将 ZIP **完整解压**到普通可写目录，例如 `D:\Apps\LocalLLMGateway`。
+5. 双击 `启动网关.cmd` 或 `Start Gateway.cmd`。
+6. 等待浏览器自动打开 `http://127.0.0.1:8317/admin`。
+7. 在 Dashboard 中依次添加 Provider、API Key 和 Model。
 
 默认只监听 `127.0.0.1`，局域网中的其他设备无法直接访问。不要为了省事把监听地址
 改成 `0.0.0.0`；如确需网络访问，必须同时设置网关 API Key、管理密码并配置防火墙。
+
+### Windows 11 智能应用控制提示
+
+从浏览器下载的 ZIP 可能带有“来自 Internet”标记；Windows 解压时会把该标记传递给
+`.cmd` 和 `.ps1` 启动脚本，从而被“智能应用控制”拦截。请在**解压前**按上面的步骤解除
+ZIP 锁定。`ExecutionPolicy Bypass` 不能绕过智能应用控制。
+
+如果已经解压，请删除该目录、解除 ZIP 锁定后重新解压。或者在你自己打开的 PowerShell
+窗口中执行下列命令（将路径替换为实际解压目录）：
+
+```powershell
+Get-ChildItem -LiteralPath 'D:\Apps\LocalLLMGateway' -Recurse -File | Unblock-File
+```
 
 ## 常用操作
 
@@ -84,14 +98,30 @@ does not require `npm install`, administrator permission, or a system service.
 
 1. Open the project's [Releases](https://github.com/wangtx-wtx/local-llm-gateway/releases).
 2. Download `local-llm-gateway-v*-windows-x64-portable.zip`.
-3. Fully extract the ZIP to a normal writable folder, such as `D:\Apps\LocalLLMGateway`.
-4. Double-click `Start Gateway.cmd`.
-5. Wait for the browser to open `http://127.0.0.1:8317/admin` automatically.
-6. Add a Provider, API Key, and Model in the dashboard.
+3. Before extracting, right-click the ZIP → Properties → check **Unblock** at the bottom → Apply.
+4. Fully extract the ZIP to a normal writable folder, such as `D:\Apps\LocalLLMGateway`.
+5. Double-click `Start Gateway.cmd`.
+6. Wait for the browser to open `http://127.0.0.1:8317/admin` automatically.
+7. Add a Provider, API Key, and Model in the dashboard.
 
 The default bind address is `127.0.0.1`, so other devices on the local network cannot
 connect directly. Do not change it to `0.0.0.0` merely for convenience. Network access
 requires a gateway API key, an administrator password, and appropriate firewall rules.
+
+### Windows 11 Smart App Control
+
+A ZIP downloaded by a browser may carry the "from the Internet" mark. Windows can propagate
+that mark to extracted `.cmd` and `.ps1` launchers, which Smart App Control then blocks.
+Unblock the ZIP **before extracting** as described above. `ExecutionPolicy Bypass` cannot
+override Smart App Control.
+
+If you already extracted it, delete that folder, unblock the ZIP, and extract it again.
+Alternatively, run this in a PowerShell window you opened yourself, replacing the path with
+the actual extracted folder:
+
+```powershell
+Get-ChildItem -LiteralPath 'D:\Apps\LocalLLMGateway' -Recurse -File | Unblock-File
+```
 
 ## Common operations
 

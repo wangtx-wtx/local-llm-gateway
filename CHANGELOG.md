@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+## [1.0.4] - 2026-09-11
+
+### Fixed
+
+- Added bilingual Windows Smart App Control guidance: unblock the downloaded ZIP before
+  extraction, or recursively remove the Internet mark from an already extracted folder.
+
 ## [1.0.3] - 2026-09-11
 
 ### Added
@@ -55,3 +62,4 @@ All notable changes to this project are documented in this file.
 [1.0.1]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.1
 [1.0.2]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.2
 [1.0.3]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.3
+[1.0.4]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.4
