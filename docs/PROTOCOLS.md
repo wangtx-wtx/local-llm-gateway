@@ -352,21 +352,27 @@ directions go through the canonical model.
 
 ### Verification status
 
-The matrix above describes implemented routing and adapter paths, not equivalent
-verification or lossless fidelity for all nine combinations.
+The matrix above describes implemented routing and adapter paths. All nine combinations
+now have equivalent full-gateway coverage for basic text, usage, request routing, and
+client stream lifecycle. This is not a claim of lossless protocol-specific fidelity.
 
 | Native upstream | Chat client | Responses client | Anthropic client |
 | --- | --- | --- | --- |
 | OpenAI Chat Completions | E2E verified | E2E verified | E2E verified |
-| OpenAI Responses | Implemented | Implemented | Implemented |
-| Anthropic Messages | Implemented | Implemented | Implemented |
+| OpenAI Responses | E2E verified | E2E verified | E2E verified |
+| Anthropic Messages | E2E verified | E2E verified | E2E verified |
 
-The E2E-verified row uses the bundled chat-only fake upstream and covers both streaming
-and non-streaming behavior where asserted by the integration and acceptance suites. The
-native Responses and native Anthropic rows have protocol adapter and transport
-implementations, but their complete cross-protocol combinations have not been exercised
-with equivalent full-gateway tests or real third-party providers. They must therefore not
-be advertised as fully verified or lossless.
+The 18-case protocol-matrix integration suite exercises every client/upstream pairing in
+streaming and non-streaming mode against protocol-faithful bundled fake upstreams. It
+checks the upstream path and wire request, returned text, client wire lifecycle, and basic
+usage propagation.
+
+A real-provider spot check on 2026-09-11 used one configured native Responses upstream.
+All three non-streaming client protocols succeeded (3/3). All three streaming calls failed
+because that upstream returned a JSON `404 NOT_FOUND` response instead of Responses SSE;
+the gateway surfaced the incompatibility as a 502 upstream error. No native Anthropic
+provider was configured, so native-Anthropic real-provider behavior remains unverified.
+Provider URLs, model IDs, and credentials were neither recorded nor committed.
 
 The mode is per-model (`chatCompletionsMode`, `responsesMode`,
 `anthropicMessagesMode` on the model entity) and validated per request in

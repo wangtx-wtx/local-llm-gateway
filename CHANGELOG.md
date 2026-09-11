@@ -4,11 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+## [1.0.3] - 2026-09-11
+
+### Added
+
+- Added an 18-case full-gateway protocol matrix covering all 3 × 3 client/upstream
+  combinations in streaming and non-streaming mode.
+
+### Fixed
+
+- Correctly merge split Anthropic streaming usage so a later output-only update cannot
+  discard input tokens from `totalTokens`.
+
 ### Documentation
 
-- Clarified that the protocol layer implements a 3 × 3 compatibility matrix but only the
-  chat-native upstream row currently has equivalent end-to-end verification.
-- Documented that cross-protocol conversion is not lossless for provider-specific features.
+- Documented the full fake-upstream matrix evidence separately from real-provider evidence.
+- Recorded the configured native Responses provider spot-check outcome without exposing
+  provider URLs, model IDs, or credentials.
 
 ## [1.0.2] - 2026-09-11
 
@@ -42,3 +54,4 @@ All notable changes to this project are documented in this file.
 [1.0.0]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.0
 [1.0.1]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.1
 [1.0.2]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.2
+[1.0.3]: https://github.com/wangtx-wtx/local-llm-gateway/releases/tag/v1.0.3

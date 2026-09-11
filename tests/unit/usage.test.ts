@@ -150,6 +150,15 @@ describe('mergeUsage', () => {
     expect(merged?.outputTokens).toBe(7);
     expect(merged?.totalTokens).toBe(17);
   });
+
+  it('recomputes total when Anthropic streaming reports input and output separately', () => {
+    const start = normalizeProviderUsage({ input_tokens: 9, output_tokens: 0 });
+    const delta = normalizeProviderUsage({ output_tokens: 4 });
+    const merged = mergeUsage(start, delta);
+    expect(merged?.inputTokens).toBe(9);
+    expect(merged?.outputTokens).toBe(4);
+    expect(merged?.totalTokens).toBe(13);
+  });
 });
 
 describe('emptyUsage', () => {

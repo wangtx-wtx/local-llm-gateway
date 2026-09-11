@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import type { ProtocolId } from '../../src/domain/types.js';
 
 /**
  * Mock upstream provider used by integration tests and the acceptance test.
@@ -19,6 +20,8 @@ export interface RecordedRequest {
 }
 
 export interface FakeProviderOptions {
+  /** Native wire protocol spoken by this fake upstream. Defaults to OpenAI Chat. */
+  nativeProtocol?: ProtocolId;
   /** Reply text streamed back token by token. */
   reply?: string;
   /** Emit reasoning deltas before the text (chat: `reasoning_content`). */
@@ -198,6 +201,15 @@ export class FakeProvider {
   }
 
   private async jsonResponse(response: ServerResponse, body: Record<string, unknown> | null): Promise<void> {
+    const nativeProtocol = this.options.nativeProtocol ?? 'openai-chat';
+    if (nativeProtocol === 'openai-responses') {
+      this.responsesJsonResponse(response, body);
+      return;
+    }
+    if (nativeProtocol === 'anthropic-messages') {
+      this.anthropicJsonResponse(response, body);
+      return;
+    }
     const message: Record<string, unknown> = { role: 'assistant', content: this.options.reply ?? 'Hello from the fake provider.' };
     if (this.options.reasoning) message['reasoning_content'] = this.options.reasoning;
     if (this.options.toolCall) {
@@ -229,11 +241,66 @@ export class FakeProvider {
     response.end(JSON.stringify(payload));
   }
 
+  private responsesJsonResponse(response: ServerResponse, body: Record<string, unknown> | null): void {
+    const text = this.options.reply ?? 'Hello from the fake provider.';
+    const model = typeof body?.['model'] === 'string' ? body['model'] : 'model-a';
+    const usage = this.options.usage === undefined ? { promptTokens: 12, completionTokens: 7 } : this.options.usage;
+    const payload = {
+      id: 'resp_fake_1',
+      object: 'response',
+      created_at: Math.floor(Date.now() / 1000),
+      status: 'completed',
+      model,
+      output: [
+        {
+          id: 'msg_fake_1',
+          type: 'message',
+          status: 'completed',
+          role: 'assistant',
+          content: [{ type: 'output_text', text, annotations: [] }],
+        },
+      ],
+      output_text: text,
+      usage: usage
+        ? { input_tokens: usage.promptTokens, output_tokens: usage.completionTokens, total_tokens: usage.promptTokens + usage.completionTokens }
+        : null,
+    };
+    response.writeHead(200, { 'content-type': 'application/json' });
+    response.end(JSON.stringify(payload));
+  }
+
+  private anthropicJsonResponse(response: ServerResponse, body: Record<string, unknown> | null): void {
+    const text = this.options.reply ?? 'Hello from the fake provider.';
+    const model = typeof body?.['model'] === 'string' ? body['model'] : 'model-a';
+    const usage = this.options.usage === undefined ? { promptTokens: 12, completionTokens: 7 } : this.options.usage;
+    const payload = {
+      id: 'msg_fake_1',
+      type: 'message',
+      role: 'assistant',
+      model,
+      content: [{ type: 'text', text }],
+      stop_reason: 'end_turn',
+      stop_sequence: null,
+      usage: usage ? { input_tokens: usage.promptTokens, output_tokens: usage.completionTokens } : { input_tokens: 0, output_tokens: 0 },
+    };
+    response.writeHead(200, { 'content-type': 'application/json' });
+    response.end(JSON.stringify(payload));
+  }
+
   private async streamResponse(
     request: IncomingMessage,
     response: ServerResponse,
     body: Record<string, unknown> | null,
   ): Promise<void> {
+    const nativeProtocol = this.options.nativeProtocol ?? 'openai-chat';
+    if (nativeProtocol === 'openai-responses') {
+      await this.responsesStreamResponse(response, body);
+      return;
+    }
+    if (nativeProtocol === 'anthropic-messages') {
+      await this.anthropicStreamResponse(response, body);
+      return;
+    }
     response.writeHead(200, {
       'content-type': 'text/event-stream; charset=utf-8',
       'cache-control': 'no-cache',
@@ -333,5 +400,67 @@ export class FakeProvider {
     response.write('data: [DONE]\n\n');
     response.end();
     void request;
+  }
+
+  private async responsesStreamResponse(response: ServerResponse, body: Record<string, unknown> | null): Promise<void> {
+    response.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-cache' });
+    const model = typeof body?.['model'] === 'string' ? body['model'] : 'model-a';
+    const text = this.options.reply ?? 'Hello from the fake provider.';
+    const usage = this.options.usage === undefined ? { promptTokens: 12, completionTokens: 7 } : this.options.usage;
+    const id = `resp_fake_${Date.now().toString(36)}`;
+    const itemId = `msg_fake_${Date.now().toString(36)}`;
+    let sequence = 0;
+    const write = (type: string, fields: Record<string, unknown>): void => {
+      response.write(`event: ${type}\ndata: ${JSON.stringify({ type, ...fields, sequence_number: sequence++ })}\n\n`);
+    };
+    const envelope = {
+      id,
+      object: 'response',
+      created_at: Math.floor(Date.now() / 1000),
+      status: 'completed',
+      model,
+      output: [{ id: itemId, type: 'message', status: 'completed', role: 'assistant', content: [{ type: 'output_text', text, annotations: [] }] }],
+      output_text: text,
+      usage: usage ? { input_tokens: usage.promptTokens, output_tokens: usage.completionTokens, total_tokens: usage.promptTokens + usage.completionTokens } : null,
+    };
+    write('response.created', { response: { ...envelope, status: 'in_progress', output: [], output_text: '', usage: null } });
+    write('response.output_item.added', { output_index: 0, item: { id: itemId, type: 'message', status: 'in_progress', role: 'assistant', content: [] } });
+    for (const token of text.match(/\S+\s*/g) ?? [text]) {
+      write('response.output_text.delta', { item_id: itemId, output_index: 0, content_index: 0, delta: token });
+    }
+    write('response.output_text.done', { item_id: itemId, output_index: 0, content_index: 0, text });
+    write('response.output_item.done', { output_index: 0, item: envelope.output[0] });
+    write('response.completed', { response: envelope });
+    response.end();
+  }
+
+  private async anthropicStreamResponse(response: ServerResponse, body: Record<string, unknown> | null): Promise<void> {
+    response.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-cache' });
+    const model = typeof body?.['model'] === 'string' ? body['model'] : 'model-a';
+    const text = this.options.reply ?? 'Hello from the fake provider.';
+    const usage = this.options.usage === undefined ? { promptTokens: 12, completionTokens: 7 } : this.options.usage;
+    const write = (type: string, fields: Record<string, unknown>): void => {
+      response.write(`event: ${type}\ndata: ${JSON.stringify({ type, ...fields })}\n\n`);
+    };
+    write('message_start', {
+      message: {
+        id: `msg_fake_${Date.now().toString(36)}`,
+        type: 'message',
+        role: 'assistant',
+        model,
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: usage?.promptTokens ?? 0, output_tokens: 0 },
+      },
+    });
+    write('content_block_start', { index: 0, content_block: { type: 'text', text: '' } });
+    for (const token of text.match(/\S+\s*/g) ?? [text]) {
+      write('content_block_delta', { index: 0, delta: { type: 'text_delta', text: token } });
+    }
+    write('content_block_stop', { index: 0 });
+    write('message_delta', { delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: usage?.completionTokens ?? 0 } });
+    write('message_stop', {});
+    response.end();
   }
 }

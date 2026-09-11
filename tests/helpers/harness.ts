@@ -33,6 +33,7 @@ export interface Harness {
     providerId?: string;
     modelId?: string;
     responsesMode?: 'native' | 'emulated' | 'unsupported';
+    nativeProtocol?: 'openai-chat' | 'openai-responses' | 'anthropic-messages';
   }): { providerId: string; modelId: string; keyIds: string[] };
   dispose(): Promise<void>;
 }
@@ -74,7 +75,8 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
       const providerId = input.providerId ?? 'prv_test';
       const keyNames = input.keyNames ?? ['Key A'];
       const clientModelId = input.modelClientId ?? 'model-a';
-      const modes = defaultModesFor('openai-chat');
+      const nativeProtocol = input.nativeProtocol ?? 'openai-chat';
+      const modes = defaultModesFor(nativeProtocol);
 
       if (!repositories.providers.get(providerId)) {
         repositories.providers.create({
@@ -82,7 +84,7 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
           name: input.providerName ?? 'Provider A',
           type: 'openai-compatible',
           baseUrl,
-          nativeProtocol: 'openai-chat',
+          nativeProtocol,
           enabled: true,
           allowPrivateNetwork: true, // the mock upstream listens on loopback
         });
@@ -117,7 +119,7 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
           enabled: true,
           contextWindow: 128_000,
           maxOutputTokens: 4_096,
-          nativeProtocol: 'openai-chat',
+          nativeProtocol,
           responsesMode: input.responsesMode ?? modes.responsesMode,
           chatCompletionsMode: modes.chatCompletionsMode,
           anthropicMessagesMode: modes.anthropicMessagesMode,

@@ -196,15 +196,30 @@ export function mergeUsage(base: CanonicalUsage | null, update: CanonicalUsage |
   if (!update) return base;
   if (!base) return update;
   const mergeField = (a: number | null, b: number | null): number | null => (b === null ? a : b);
+  const inputTokens = mergeField(base.inputTokens, update.inputTokens);
+  const outputTokens = mergeField(base.outputTokens, update.outputTokens);
+  // Anthropic streaming reports input usage in message_start and output usage
+  // later in message_delta. normalizeProviderUsage derives a partial total for
+  // each event, but that derived output-only total must not overwrite the
+  // earlier input count. An explicitly reported provider total remains
+  // authoritative; otherwise recompute it from the merged fields.
+  const raw = update.providerRawUsage;
+  const hasExplicitRawTotal = raw !== undefined && ('total_tokens' in raw || 'totalTokens' in raw);
+  const totalTokens =
+    update.totalTokens !== null && (raw === undefined || hasExplicitRawTotal)
+      ? update.totalTokens
+      : inputTokens !== null || outputTokens !== null
+        ? (inputTokens ?? 0) + (outputTokens ?? 0)
+        : mergeField(base.totalTokens, update.totalTokens);
   return {
-    inputTokens: mergeField(base.inputTokens, update.inputTokens),
+    inputTokens,
     cachedInputTokens: mergeField(base.cachedInputTokens, update.cachedInputTokens),
     uncachedInputTokens: mergeField(base.uncachedInputTokens, update.uncachedInputTokens),
     cacheCreationInputTokens: mergeField(base.cacheCreationInputTokens, update.cacheCreationInputTokens),
     cacheReadInputTokens: mergeField(base.cacheReadInputTokens, update.cacheReadInputTokens),
-    outputTokens: mergeField(base.outputTokens, update.outputTokens),
+    outputTokens,
     reasoningTokens: mergeField(base.reasoningTokens, update.reasoningTokens),
-    totalTokens: mergeField(base.totalTokens, update.totalTokens),
+    totalTokens,
     source: base.source === 'provider' && update.source === 'provider' ? 'provider' : 'gateway_estimated',
     ...(base.providerRawUsage || update.providerRawUsage
       ? { providerRawUsage: { ...base.providerRawUsage, ...update.providerRawUsage } }

@@ -18,25 +18,32 @@ Agent / IDE / SDK  ──►  http://127.0.0.1:8317/v1  ──►  多 Provider 
 ## 协议转换范围 / Protocol conversion scope
 
 网关的适配器和路由架构支持三种客户端协议与三种上游原生协议之间的 `3 × 3`
-转换。这里的“支持”表示存在 Canonical 转换代码路径，**不表示所有组合均已通过同等级
-端到端测试，也不表示协议专属功能能够无损转换**。
+转换。全部 9 种组合均已使用协议一致的内置假上游完成流式与非流式全网关测试；
+**这不表示协议专属功能能够无损转换，也不等同于所有真实第三方供应商均兼容**。
 
 The adapter and routing architecture implements a `3 × 3` conversion path between the
-three client protocols and three native upstream protocols. “Implemented” does **not** mean
-that every combination has equivalent end-to-end coverage or lossless feature fidelity.
+three client protocols and three native upstream protocols. All nine combinations have
+full-gateway streaming and non-streaming coverage against protocol-faithful bundled fake
+upstreams. This does **not** imply lossless feature fidelity or compatibility with every
+real third-party provider.
 
 | 上游原生协议 / Native upstream | Chat 客户端 | Responses 客户端 | Anthropic 客户端 |
 |---|---|---|---|
 | OpenAI Chat Completions | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified |
-| OpenAI Responses | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented |
-| Anthropic Messages | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented | 代码路径已实现 / Implemented |
+| OpenAI Responses | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified |
+| Anthropic Messages | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified | 已端到端验证 / E2E verified |
 
-当前同等级端到端证据使用的是内置 Chat-only 假上游；尚未对 Responses 原生上游、
-Anthropic 原生上游的全部交叉组合和真实第三方供应商完成同等级验证。
+真实供应商抽查 / Real-provider spot check (2026-09-11): 当前配置的一个 Responses 原生
+上游在三个客户端协议的非流式请求中均成功（3/3）；三个流式请求均失败，因为该上游
+返回 JSON `404 NOT_FOUND`，而不是 Responses SSE。网关将其作为 502 上游错误返回。
+当前没有配置 Anthropic 原生上游，因此该行尚无真实供应商证据。测试没有记录或提交
+任何 URL、模型 ID 或密钥。
 
-Current equivalent E2E evidence uses the bundled chat-only fake upstream. The complete
-cross-product for native Responses and native Anthropic upstreams, and real third-party
-provider behavior, has not yet been verified to the same standard.
+For one configured native Responses provider, non-streaming requests succeeded through
+all three client protocols (3/3). All three streaming requests failed because the upstream
+returned JSON `404 NOT_FOUND` instead of Responses SSE; the gateway surfaced this as a 502
+upstream error. No native Anthropic provider is currently configured, so that row has no
+real-provider evidence yet. No URL, model ID, or secret was recorded or committed.
 
 主要降级项 / Important fidelity limits:
 
