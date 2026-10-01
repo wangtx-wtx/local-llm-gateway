@@ -43,9 +43,9 @@
     "check:mapping": "node scripts/check-chat-responses-mapping.mjs"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "oxlint": "^1.82.0",
+    "@types/node": "^24.19.0",
+    "oxlint": "^1.86.0",
     "typescript": "^5.6.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.2"
   }
 }
